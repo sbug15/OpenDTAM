@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 2.6)
-set(CMAKE_BUILD_TYPE Debug) 
+set(CMAKE_BUILD_TYPE Release) 
 project(dtam)
 cmake_policy(SET CMP0012 NEW)
 #set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
@@ -10,7 +10,20 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g -ggdb")
 find_package(OpenCV 3 REQUIRED)
 find_package(Qt5Core REQUIRED)
 find_package(CUDA REQUIRED)
-find_package(Boost REQUIRED COMPONENTS system)
+
+#find_package(Boost REQUIRED COMPONENTS system)
+set(Boost_INCLUDE_DIRS "C:/Mylib/boost_1_60_0")
+link_directories(${Boost_INCLUDE_DIRS}/stage/x64/lib)
+file(GLOB Boost_LIBRARIES ${Boost_INCLUDE_DIRS}/stage/x64/lib/.*lib)
+
+#pthread
+set(pthreadSrc "C:/workSpace/environment64/pthreads")
+# include_directories("C:/workSpace/environment64/pthreads/include")
+include_directories(${pthreadSrc}/include)
+link_directories(${pthreadSrc}/x64/lib)
+file(GLOB_RECURSE 3rdparty ${3rdparty} ${pthreadSrc}/x64/lib/*.lib)
+
+
 #add_definitions( -D__OPENCV_BUILD=1 )
 #message(STATUS ${OpenCV_CONSIDERED_CONFIGS})
 
@@ -51,12 +64,14 @@ set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};
   -gencode arch=compute_30,code=sm_30;
   -gencode arch=compute_35,code=sm_35;
   -gencode arch=compute_50,code=sm_50;
+  -gencode arch=compute_52,code=sm_52;        
+  -gencode arch=compute_61,code=sm_61;
   --use_fast_math;
   --restrict;
   -lineinfo;
   -O3
 )
 cuda_add_library(OpenDTAM SHARED ${DTAM_SOURCES} OpenDTAM.cpp)
-target_link_libraries(OpenDTAM pthread opencv_cudaimgproc opencv_cudastereo ${Boost_LIBRARIES})
-add_executable (a.out testprog.cpp convertAhandaPovRayToStandard.cpp graphics.cpp)
-target_link_libraries( a.out  OpenDTAM ${OpenCV_LIBS} ${Boost_LIBRARIES})
+target_link_libraries(OpenDTAM ${3rdparty} opencv_cudaimgproc opencv_cudastereo ${Boost_LIBRARIES})
+add_executable (${PROJECT_NAME} testprog.cpp convertAhandaPovRayToStandard.cpp graphics.cpp)
+target_link_libraries(${PROJECT_NAME}  OpenDTAM ${OpenCV_LIBS} ${Boost_LIBRARIES})
